@@ -96,6 +96,11 @@ base_2013 <- base_2013 %>%
 base_completa <- bind_rows(base_2010, base_2013)
 base_completa <- bind_rows(base_completa, base_2016)
 
+base_completa_filtrada <- base_completa %>%
+  select("ola.x", "consecutivo", "edad", "sexo", "educ_padre":"etnia", 
+         "lee_escribe":"nivel_educ", "vr_salario", "vr_ahorro", "region":"estrato", 
+         "familias_accion":"otro_programa", "ing_trabajo":"informal")
+
   
 
 

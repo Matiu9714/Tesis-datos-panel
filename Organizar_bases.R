@@ -2,6 +2,8 @@ library(haven)
 Upersonas2010 <- read_dta("C:/Users/juanp/Downloads/Trabajo de grado/Urbano 2010/Bases/Upersonas.dta")
 
 library(dplyr)
+install.packages("plm")
+library(plm)
 
 Upersonas_Filtrado_2010 <- Upersonas2010 %>%
   select("ola":"llave_ID_lb", "edad", "sexo", "parentesco", "educ_padre", "educ_madre", 
@@ -68,27 +70,49 @@ base_2010 <- base_2010 %>%
                                                     ifelse(cotiza_fp == 7, 0, 1)))))
 
 base_2013 <- base_2013 %>%
-  filter(poc == 1, edad >= 15) %>%
+  filter(poc == 1, edad >= 15) 
+
+base_2013 <- base_2013 %>%
   mutate(base_2013, informal = ifelse(afiliacion == 2, 0,
                                       ifelse(cotizando == 2, 0, 1))) %>%
   filter(informal == 1 | informal == 0)
 
 base_2016 <- base_2016 %>%
-  filter(poc == 1, edad >= 15) %>%
+  filter(poc == 1, edad >= 15) 
+
+base_2016 <- base_2016 %>%
   mutate(base_2016, informal = ifelse(afiliacion == 2, 0,
                                       ifelse(cotizando == 2, 0, 1))) %>%
   filter(informal == 1 | informal == 0)
 
 #balancear, o  medio balancear mas bien jajaja
 
+base_2013 <- base_2013 %>%
+  group_by(consecutivo) %>%
+  slice(1)
+
+base_2010 <- base_2010 %>%
+  group_by(consecutivo) %>%
+  slice(1)
+
 base_2016 <- base_2016 %>%
+  group_by(consecutivo) %>%
+  slice(1)
+
+base_2016 <- base_2016 %>%
+  semi_join(base_2010, by = "llave_ID_lb")
+
+base_2016 <- base_2016 %>%
+  semi_join(base_2013, by = "llave_ID_lb")
+
+base_2013 <- base_2013 %>%
   semi_join(base_2010, by = "llave_ID_lb")
 
 base_2010 <- base_2010 %>%
   semi_join(base_2016, by = "llave_ID_lb")
 
 base_2013 <- base_2013 %>%
-  semi_join(base_2010, by = "llave_ID_lb")
+  semi_join(base_2016, by = "llave_ID_lb")
 
 
 #unir en una base los tres años
@@ -101,9 +125,31 @@ base_completa_filtrada <- base_completa %>%
          "lee_escribe":"nivel_educ", "vr_salario", "vr_ahorro", "region":"estrato", 
          "familias_accion":"otro_programa", "ing_trabajo":"informal")
 
-  
+base_completa_filtrada <- base_completa_filtrada %>%
+  rename("anio" = "ola.x")
+
+base_completa_filtrada$anio[base_completa_filtrada$anio == 1] <- 2010
+base_completa_filtrada$anio[base_completa_filtrada$anio == 2] <- 2013
+base_completa_filtrada$anio[base_completa_filtrada$anio == 3] <- 2016
+base_completa_filtrada$familias_accion:otro_programa[is.na(base_completa_filtrada$familias_accion:otro_programa)] <- 2
 
 
+
+##necesitamos sutituir los na para balancear el panel
+
+base_completa_fil <- na.omit(base_completa_filtrada) ##eliminar todos los na, no sirve
+
+##eliminar los na en solo una columna
+base_completa_filtrada$familias_accion[is.na(base_completa_filtrada$familias_accion)] <- 2
+
+
+modelo <- plm(informal ~ familias_accion, data = base_completa_filtrada, 
+              index = c("consecutivo", "anio"), model = "random")
+
+summary(modelo)
+
+
+table(base_completa_filtrada$ola.x)
 
 
 

@@ -85,7 +85,7 @@ base_2016 <- base_2016 %>%
                                       ifelse(cotizando == 2, 0, 1))) %>%
   filter(informal == 1 | informal == 0)
 
-#balancear, o  medio balancear mas bien jajaja
+#balancear
 
 base_2013 <- base_2013 %>%
   group_by(consecutivo) %>%

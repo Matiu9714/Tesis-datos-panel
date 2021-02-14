@@ -2,6 +2,8 @@ library(ggplot2)
 library(haven)
 library(tidyverse)
 library(dplyr)
+install.packages("ggthemes")
+library(ggthemes)
 
 str(base_completa_filtrada)
 
@@ -83,6 +85,34 @@ ggplot(base_completa_filtrada, aes(informal, fill = factor(nivel_educ))) +
 
 ggplot(base_completa_filtrada, aes(anio, ing_trabajo, color = factor(sexo))) + 
   geom_violin() + scale_x_continuous() + scale_y_continuous()
+
+ggplot(base_completa_filtrada, aes(informal, fill = factor(sexo))) + 
+  geom_bar(position = position_dodge(width = 0.2), alpha = 0.6) + 
+  scale_x_discrete("Informal - Formal") + theme(legend.position = c(0.91, 0.16),
+                                                text = element_text( family = "serif", size = 14),
+                                                rect = element_blank(),
+                                                panel.grid = element_blank(),
+                                                axis.line = element_line(color = "black"))
+                                            
+
+Tema_1 <- theme(legend.position = c(0.91, 0.16),
+                text = element_text( family = "serif", size = 14),
+                rect = element_blank(),
+                panel.grid = element_blank(),
+                axis.line = element_line(color = "black"))
+
+ggplot(base_completa_filtrada, aes(informal, fill = factor(sexo))) + 
+  geom_bar(position = position_dodge(width = 0.2), alpha = 0.6) + 
+  scale_x_discrete("Informal - Formal") + theme_minimal() + 
+  labs(title = "Numero de personas formales e informales por sexo")
+
+
+
+
+
+
+
+
 
 
 

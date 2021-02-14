@@ -4,6 +4,9 @@ Upersonas2010 <- read_dta("C:/Users/juanp/Downloads/Trabajo de grado/Urbano 2010
 library(dplyr)
 install.packages("plm")
 library(plm)
+install.packages("zoo")
+library(zoo)
+library(data.table)
 
 Upersonas_Filtrado_2010 <- Upersonas2010 %>%
   select("ola":"llave_ID_lb", "edad", "sexo", "parentesco", "educ_padre", "educ_madre", 
@@ -133,6 +136,12 @@ base_completa_filtrada$anio[base_completa_filtrada$anio == 2] <- 2013
 base_completa_filtrada$anio[base_completa_filtrada$anio == 3] <- 2016
 base_completa_filtrada$familias_accion:otro_programa[is.na(base_completa_filtrada$familias_accion:otro_programa)] <- 2
 
+##rellenar educ_madre y educ_padre, no esta correcto
+
+base_completa_filtrada <- base_completa_filtrada %>%
+  arrange(consecutivo)
+
+base_prueba <- setnafill(base_completa_filtrada, type = "locf", cols = "educ_madre")
 
 
 ##necesitamos sutituir los na para balancear el panel

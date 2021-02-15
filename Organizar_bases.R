@@ -125,8 +125,8 @@ base_completa <- bind_rows(base_completa, base_2016)
 
 base_completa_filtrada <- base_completa %>%
   select("ola.x", "consecutivo", "edad", "sexo", "educ_padre":"etnia", 
-         "lee_escribe":"nivel_educ", "vr_salario", "vr_ahorro", "region":"estrato", 
-         "familias_accion":"otro_programa", "ing_trabajo":"informal")
+         "lee_escribe":"nivel_educ", "vr_salario", "vr_ahorro", "region", "estrato", 
+         "familias_accion":"caja_saludrec", "ayu_desplazados", "otro_programa", "ing_trabajo":"informal")
 
 base_completa_filtrada <- base_completa_filtrada %>%
   rename("anio" = "ola.x")
@@ -134,31 +134,60 @@ base_completa_filtrada <- base_completa_filtrada %>%
 base_completa_filtrada$anio[base_completa_filtrada$anio == 1] <- 2010
 base_completa_filtrada$anio[base_completa_filtrada$anio == 2] <- 2013
 base_completa_filtrada$anio[base_completa_filtrada$anio == 3] <- 2016
-base_completa_filtrada$familias_accion:otro_programa[is.na(base_completa_filtrada$familias_accion:otro_programa)] <- 2
 
-##rellenar educ_madre y educ_padre, no esta correcto
+##rellenar educ_madre y educ_padre y arreglar los datos
 
 base_completa_filtrada <- base_completa_filtrada %>%
   arrange(consecutivo)
 
-base_prueba <- setnafill(base_completa_filtrada, type = "locf", cols = "educ_madre")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "educ_madre")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "educ_padre")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "educ_madre")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "etnia")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "region")
+base_completa_filtrada$educ_padre[base_completa_filtrada$educ_padre == 99] <- 4 ##Reemplazo por la media 
+base_completa_filtrada$educ_padre[base_completa_filtrada$educ_padre == 98] <- 4
+base_completa_filtrada$educ_madre[base_completa_filtrada$educ_madre == 98] <- 4
+base_completa_filtrada$educ_madre[base_completa_filtrada$educ_madre == 99] <- 4
+base_completa_filtrada$region[base_completa_filtrada$region == 0] <- 2
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "familias_accion")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "jovenes_accion")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "sena")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "red_juntos")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "icbf")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "sub_desempleo")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "caja_subsprest")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "caja_saludrec")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "ayu_desplazados")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "otro_programa")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "vr_gtos_mensuales")
+base_completa_filtrada <- setnafill(base_completa_filtrada, type = "locf", cols = "ing_trabajo")
 
 
-##necesitamos sutituir los na para balancear el panel
-
-base_completa_fil <- na.omit(base_completa_filtrada) ##eliminar todos los na, no sirve
-
-##eliminar los na en solo una columna
-base_completa_filtrada$familias_accion[is.na(base_completa_filtrada$familias_accion)] <- 2
+base_completa_filtrada$anio <- as.factor(base_completa_filtrada$anio)
+base_completa_filtrada$informal <- as.(base_completa_filtrada$informal)
+                                             
+## Hasta aqui la base de datos esta balanceada
 
 
-modelo <- plm(informal ~ familias_accion, data = base_completa_filtrada, 
+modelo <- plm(informal ~ familias_accion + sexo + educ_padre + educ_madre + 
+                jovenes_accion + sena + red_juntos + icbf + sub_desempleo +
+                caja_subsprest + caja_saludrec + ayu_desplazados + otro_programa, 
+              data = base_completa_filtrada, 
               index = c("consecutivo", "anio"), model = "random")
+
+modelo <- plm(informal ~ familias_accion + sexo + educ_padre + educ_madre + 
+                sub_desempleo + caja_subsprest + caja_saludrec, 
+              data = base_completa_filtrada, 
+              index = c("consecutivo", "anio"))
+
 
 summary(modelo)
 
+str(base_completa_filtrada)
 
-table(base_completa_filtrada$ola.x)
+
+
 
 
 

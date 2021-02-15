@@ -102,9 +102,12 @@ Tema_1 <- theme(legend.position = c(0.91, 0.16),
                 axis.line = element_line(color = "black"))
 
 ggplot(base_completa_filtrada, aes(informal, fill = factor(sexo))) + 
-  geom_bar(position = position_dodge(width = 0.2), alpha = 0.6) + 
+  geom_bar(position = position_dodge(width = 0.5), alpha = 0.6) + 
   scale_x_discrete("Informal - Formal") + theme_minimal() + 
-  labs(title = "Numero de personas formales e informales por sexo")
+  labs(title = "Numero de personas formales e informales por sexo") + facet_grid(. ~ region)
+
+
+
 
 
 
